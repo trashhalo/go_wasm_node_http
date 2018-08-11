@@ -7,9 +7,22 @@ import (
 
 var headers js.Value
 
+var (
+	jsFun            = js.Global().Get("Function")
+	natveRequestFunc = nativeRequest()
+)
+
 func init() {
 	headers := js.Global().Get("Object").New()
 	headers.Set("Content-Type", "text/plain")
+}
+
+func nativeRequest() js.Value {
+	return jsFun.New("res", "headers", `
+		res.writeHead(200, headers)
+		res.write("Hello World")
+		res.end("\n")	
+	`)
 }
 
 func main() {
@@ -23,9 +36,7 @@ func main() {
 
 func request(args []js.Value) {
 	res := args[1]
-	res.Call("writeHead", 200, headers)
-	res.Call("write", "Hello World")
-	res.Call("end", "\n")
+	natveRequestFunc.Invoke(res, headers)
 }
 
 func listen(args []js.Value) {
